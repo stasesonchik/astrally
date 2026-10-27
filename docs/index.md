@@ -1,17 +1,13 @@
-# Welcome to MkDocs
+# Astrally
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+Astrally — веб-сервис с большой языковой моделью, которая общается с пользователем в образе мистического консультанта. Сервис объединяет диалог с ИИ, символические расклады Таро и персонализированные интерпретации.
 
-## Commands
+## Разделы документации
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+- [Описание проекта](project/overview.md) — назначение, пользователи, функции и состав документации.
+- [Требования](project/requirements.md) — пользовательские истории, критерии приёмки и основной сценарий использования.
+- [Диаграммы](project/diagrams.md) — взаимодействие компонентов и основные сущности системы.
 
-## Project layout
+## Важное ограничение
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Ответы Astrally предназначены для развлечения и саморефлексии. Они не являются достоверными предсказаниями и не заменяют медицинские, юридические, финансовые или иные профессиональные консультации.

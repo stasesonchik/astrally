@@ -1,7 +1,16 @@
-site_name: Docs as Code
+site_name: Astrally
+site_description: Документация ИИ-сервиса мистических консультаций
 
 theme:
   name: readthedocs
 
 plugins:
   - search
+  - mermaid2
+
+nav:
+  - Главная: index.md
+  - Проект:
+      - Описание: project/overview.md
+      - Требования: project/requirements.md
+      - Диаграммы: project/diagrams.md
