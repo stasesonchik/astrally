@@ -1,0 +1,371 @@
+openapi: 3.0.3
+
+info:
+  title: Astrally API
+  description: |
+    API веб-сервиса мистических консультаций Astrally.
+    Сервис предоставляет диалог с языковой моделью и символические расклады Таро.
+    Ответы предназначены для развлечения и саморефлексии.
+  version: 1.0.0
+
+servers:
+  - url: https://api.astrally.example/v1
+    description: Условный сервер первой версии API
+
+tags:
+  - name: Conversations
+    description: Мистические диалоги с языковой моделью
+  - name: Tarot
+    description: Создание и получение раскладов Таро
+
+paths:
+  /conversations:
+    post:
+      tags:
+        - Conversations
+      summary: Создать мистический диалог
+      description: Создаёт новую беседу и сохраняет выбранный стиль общения помощника.
+      operationId: createConversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+            example:
+              mysticalStyle: astrologer
+              usePersonalContext: true
+      responses:
+        '201':
+          description: Диалог успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        '400':
+          description: Переданы некорректные настройки диалога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_STYLE
+                message: Указанный мистический стиль не поддерживается
+
+  /conversations/{conversationId}/messages:
+    post:
+      tags:
+        - Conversations
+      summary: Отправить сообщение мистическому помощнику
+      description: |
+        Передаёт вопрос языковой модели и возвращает символическую интерпретацию.
+        Персональный контекст используется только при наличии разрешения пользователя.
+      operationId: sendConversationMessage
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+            example:
+              message: Что поможет мне принять важное решение?
+      responses:
+        '200':
+          description: Ответ языковой модели сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageResponse'
+        '400':
+          description: Сообщение пустое или превышает допустимую длину
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_MESSAGE
+                message: Текст сообщения должен содержать от 1 до 2000 символов
+        '404':
+          description: Диалог не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: CONVERSATION_NOT_FOUND
+                message: Диалог с указанным идентификатором не найден
+        '503':
+          description: Языковая модель временно недоступна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: MODEL_UNAVAILABLE
+                message: Не удалось получить ответ модели. Повторите запрос позднее
+
+  /tarot-readings:
+    post:
+      tags:
+        - Tarot
+      summary: Выполнить расклад Таро
+      description: Выбирает три карты и формирует их символическую интерпретацию по теме пользователя.
+      operationId: createTarotReading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TarotReadingRequest'
+            example:
+              topic: Отношения и личные перемены
+              usePersonalContext: false
+      responses:
+        '201':
+          description: Расклад успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TarotReading'
+        '400':
+          description: Тема расклада не указана или содержит некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: INVALID_TOPIC
+                message: Укажите тему расклада
+        '503':
+          description: Сервис интерпретации временно недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tarot-readings/{readingId}:
+    get:
+      tags:
+        - Tarot
+      summary: Получить расклад Таро
+      description: Возвращает карты и интерпретацию ранее созданного расклада.
+      operationId: getTarotReading
+      parameters:
+        - $ref: '#/components/parameters/ReadingId'
+      responses:
+        '200':
+          description: Расклад найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TarotReading'
+        '404':
+          description: Расклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: READING_NOT_FOUND
+                message: Расклад с указанным идентификатором не найден
+
+components:
+  parameters:
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      description: Уникальный идентификатор диалога
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 42
+
+    ReadingId:
+      name: readingId
+      in: path
+      required: true
+      description: Уникальный идентификатор расклада
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 108
+
+  schemas:
+    CreateConversationRequest:
+      type: object
+      required:
+        - mysticalStyle
+        - usePersonalContext
+      properties:
+        mysticalStyle:
+          type: string
+          description: Образ, в котором общается мистический помощник
+          enum:
+            - astrologer
+            - tarot-reader
+            - mystic
+          example: astrologer
+        usePersonalContext:
+          type: boolean
+          description: Разрешено ли использовать профиль и историю внутри Astrally
+          example: true
+
+    Conversation:
+      type: object
+      required:
+        - id
+        - mysticalStyle
+        - usePersonalContext
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 42
+        mysticalStyle:
+          type: string
+          example: astrologer
+        usePersonalContext:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T09:30:00Z'
+
+    SendMessageRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Вопрос пользователя мистическому помощнику
+          example: Что поможет мне принять важное решение?
+
+    ChatMessageResponse:
+      type: object
+      required:
+        - messageId
+        - conversationId
+        - answer
+        - disclaimer
+        - modelVersion
+        - createdAt
+      properties:
+        messageId:
+          type: integer
+          format: int64
+          example: 125
+        conversationId:
+          type: integer
+          format: int64
+          example: 42
+        answer:
+          type: string
+          example: Символы указывают на период переоценки целей и необходимость не торопиться с решением.
+        disclaimer:
+          type: string
+          example: Ответ носит развлекательный характер и не является профессиональной рекомендацией.
+        modelVersion:
+          type: string
+          example: astrally-llm-1.0
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T09:31:10Z'
+
+    TarotReadingRequest:
+      type: object
+      required:
+        - topic
+        - usePersonalContext
+      properties:
+        topic:
+          type: string
+          minLength: 1
+          maxLength: 300
+          description: Тема или вопрос для расклада
+          example: Отношения и личные перемены
+        usePersonalContext:
+          type: boolean
+          description: Разрешено ли учитывать данные профиля пользователя
+          example: false
+
+    TarotCard:
+      type: object
+      required:
+        - name
+        - position
+        - orientation
+        - interpretation
+      properties:
+        name:
+          type: string
+          example: Звезда
+        position:
+          type: string
+          example: Возможное направление
+        orientation:
+          type: string
+          enum:
+            - upright
+            - reversed
+          example: upright
+        interpretation:
+          type: string
+          example: Карта символизирует надежду, восстановление и ясность цели.
+
+    TarotReading:
+      type: object
+      required:
+        - id
+        - topic
+        - cards
+        - overallInterpretation
+        - disclaimer
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 108
+        topic:
+          type: string
+          example: Отношения и личные перемены
+        cards:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/TarotCard'
+        overallInterpretation:
+          type: string
+          example: Расклад предлагает осмыслить прошлый опыт и открыто обсудить ожидания.
+        disclaimer:
+          type: string
+          example: Расклад носит развлекательный и символический характер.
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T09:35:00Z'
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: INVALID_REQUEST
+        message:
+          type: string
+          example: Запрос содержит некорректные данные

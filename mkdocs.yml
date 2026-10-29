@@ -14,3 +14,6 @@ nav:
       - Описание: project/overview.md
       - Требования: project/requirements.md
       - Диаграммы: project/diagrams.md
+  - API:
+      - Обзор API: api/index.md
+      - Спецификация OpenAPI: api/openapi.yaml
